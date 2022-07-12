@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>待ち行列 - 統計の勉強部屋</title>
+    <link rel="stylesheet" href="/static/css/uikit.min.css" type="text/css" media="all">
+    <link rel="stylesheet" href="/static/css/style.css" type="text/css" media="all">
+    <style type="text/css">
+    </style>
+    <script src="/static/js/uikit.min.js" type="text/javascript"></script>
+    <script src="/static/js/uikit-icons.min.js"></script>
+</head>
+<body>
+
+<div class="uk-width-large uk-align-center">
+    <header class="uk-margin-top">
+        <h1>統計の勉強部屋</h1>
+    </header>
+    
+    <section>
+        <h2 class="">待ち行列</h2>
+        <form  method="POST" action="queueing">
+            <legend>M/M/*モデルに対応してます。</legend>
+            <fieldset>
+            <div class="uk-grid">
+                <div class="uk-width-1-1"><label><span class="uk-label">窓口(個)</span> 1桁の正の整数で入力</label></div>
+                <div class="uk-margin-top"><input class="uk-input uk-form-width-small" name="window" type="number" min=1 value="{{.form.Window}}" maxlength="1" placeholder="(例) 1"></div> 
+            </div>
+
+            <div class="uk-grid">
+                <div class="uk-width-1-1"><label><span class="uk-label">平均待ち時間(分) </span> 2桁の正の整数で入力</label></div>
+                <div class="uk-margin-top"><input class="uk-input uk-form-width-small" name="arrived" type="number" min=1 value="{{.form.Arrived}}" maxlength="3" placeholder="(例) 10"></div>
+            </div>
+
+            <div class="uk-grid">
+                <div class="uk-width-1-1"><label><span class="uk-label">平均サービス時間(分) </span> 2桁の正の整数で入力</label></div>
+                <div class="uk-margin-top"><input class="uk-input uk-form-width-small" name="servises" type="number" min=1 value="{{.form.Servises}}" maxlength="3" placeholder="8"></div>
+            </div>
+
+            <button class="uk-input uk-margin-top uk-background-muted" type="submit">Rock'n Roll.</button>
+            </fieldset>
+        </form>
+
+        {{if eq .onDisp true}}
+        <div class="output-box">
+            <p>待ち: {{.kekka.WaitMan}} (人), {{.kekka.WaitTime}} (分)</p>
+            <p>ターンアラウンドタイム: {{.kekka.TurnAroundTime}} (分)</p>
+        </div>
+        {{end}}
+
+        <hr \>
+
+
+        <div>
+            <p>{{ .logs }}</p>
+        </div>
+    </section>
+</div>
+
+
+</body>
+</html>

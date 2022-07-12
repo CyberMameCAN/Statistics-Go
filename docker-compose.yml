@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+  app:
+    container_name: project-gin-statistics
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 13030:13030
+    volumes:
+      - ./src:/go/src/app
+    tty: true
+    environment:
+      TZ: Asia/Tokyo
+    restart: unless-stopped
