@@ -1,6 +1,28 @@
 @charset "UTF-8";
 
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #333;
+    color: #fff;
+    height: 100vh;
+    border-top: 1px solid #333; /* これがないと上に帯が出来る */
+}
+
+h1, h2 {
+    margin-bottom: 0.5rem;
+}
+
+p {
+    margin: 0;
+}
+
+section {
+    margin-bottom: 1rem;
+}
 .output-box {
-    background-color: #efe;
+    background-color: rgba(255,255,255,0.1);
     padding: 6px;
+    color: #afa;
 }

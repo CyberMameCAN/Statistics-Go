@@ -14,48 +14,68 @@
 </head>
 <body>
 
-<div class="uk-width-large uk-align-center">
+<div id="whitebase" class="uk-width-xlarge uk-align-center">
     <header class="uk-margin-top">
-        <h1>統計の勉強部屋</h1>
+        <h1 class="uk-text-large uk-text-muted">統計の勉強部屋</h1>
     </header>
     
     <section>
-        <h2 class="">待ち行列</h2>
+        <h2  class="uk-text-default uk-text-muted">待ち行列</h2>
         <form  method="POST" action="queueing">
             <legend>M/M/*モデルに対応してます。</legend>
             <fieldset>
             <div class="uk-grid">
                 <div class="uk-width-1-1"><label><span class="uk-label">窓口(個)</span> 1桁の正の整数で入力</label></div>
-                <div class="uk-margin-top"><input class="uk-input uk-form-width-small" name="window" type="number" min=1 value="{{.form.Window}}" maxlength="1" placeholder="(例) 1"></div> 
+                <div class="uk-margin-top"><input class="uk-input uk-form-width-small uk-background-muted" name="window" type="number" min=1 value="{{.form.Window}}" maxlength="1" placeholder="(例) 1"></div> 
             </div>
 
             <div class="uk-grid">
                 <div class="uk-width-1-1"><label><span class="uk-label">平均待ち時間(分) </span> 2桁の正の整数で入力</label></div>
-                <div class="uk-margin-top"><input class="uk-input uk-form-width-small" name="arrived" type="number" min=1 value="{{.form.Arrived}}" maxlength="3" placeholder="(例) 10"></div>
+                <div class="uk-margin-top"><input class="uk-input uk-form-width-small uk-background-muted" name="arrived" type="number" min=1 value="{{.form.Arrived}}" maxlength="3" placeholder="(例) 10"></div>
             </div>
 
             <div class="uk-grid">
                 <div class="uk-width-1-1"><label><span class="uk-label">平均サービス時間(分) </span> 2桁の正の整数で入力</label></div>
-                <div class="uk-margin-top"><input class="uk-input uk-form-width-small" name="servises" type="number" min=1 value="{{.form.Servises}}" maxlength="3" placeholder="8"></div>
+                <div class="uk-margin-top"><input class="uk-input uk-form-width-small uk-background-muted" name="servises" type="number" min=1 value="{{.form.Servises}}" maxlength="3" placeholder="8"></div>
             </div>
 
-            <button class="uk-input uk-margin-top uk-background-muted" type="submit">Rock'n Roll.</button>
+            <button class="uk-button uk-margin-top uk-button-secondary uk-width-1-1" type="submit">Rock'n Roll.</button>
             </fieldset>
         </form>
 
         {{if eq .onDisp true}}
-        <div class="output-box">
-            <p>待ち: {{.kekka.WaitMan}} (人), {{.kekka.WaitTime}} (分)</p>
-            <p>ターンアラウンドタイム: {{.kekka.TurnAroundTime}} (分)</p>
+        <div class="uk-text-center output-box">
+            <p>待ち: {{.kekka.WaitMan}} (人), {{.kekka.WaitTime}} (分)
+            ターンアラウンドタイム: {{.kekka.TurnAroundTime}} (分)</p>
         </div>
         {{end}}
-
-        <hr \>
-
 
         <div>
             <p>{{ .logs }}</p>
         </div>
+    </section>
+
+    <section>
+        <table class="uk-table uk-table-divider uk-table-small">
+            <tr>
+                <th class="uk-text-center">窓口<br>(個)</th>
+                <th class="uk-text-center">平均待ち時間<br>(分)</th>
+                <th class="uk-text-center">平均サービス時間<br>(分)</th>
+                <th class="uk-text-success uk-text-center">待ち人<br>(人)</th>
+                <th class="uk-text-success uk-text-center">待ち時間<br>(分)</th>
+                <th class="uk-text-success uk-text-center">TAタイム<br>(分)</th>
+            </tr>
+            {{range .lasts}}
+            <tr>
+                <td class="uk-text-right">M/M/{{.InputData.Window}}</td>
+                <td class="uk-text-right">{{.InputData.Arrived}}</td>
+                <td class="uk-text-right">{{.InputData.Servises}}</td>
+                <td class="uk-text-right">{{.OutputData.WaitMan}}</td>
+                <td class="uk-text-right">{{.OutputData.WaitTime}}</td>
+                <td class="uk-text-right">{{.OutputData.TurnAroundTime}}</td>
+            </tr>
+            {{end}}
+        </table>
     </section>
 </div>
 
