@@ -1,10 +1,13 @@
 package controllers
 
 import (
+	"encoding/csv"
+	"errors"
 	"fmt"
 	"log"
 	"math"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -18,9 +21,15 @@ type QueueingTheory struct {
 }
 
 type QueueingResult struct {
-	WaitMan        string
-	WaitTime       string
-	TurnAroundTime string
+	// ID             uint   `json:"id"`
+	WaitMan        string `json:"wait_man"`         // 待ち人(人)
+	WaitTime       string `json:"wait_time"`        // 待ち時間(分)
+	TurnAroundTime string `json:"turn_around_time"` // ターンアラウンドタイム(分)
+}
+
+type QueueingData struct {
+	InputData  QueueingTheory
+	OutputData QueueingResult
 }
 
 var queueing_result QueueingResult // 計算結果を格納
@@ -30,6 +39,7 @@ func init() {
 }
 
 func initOutputData() {
+	// queueing_result.ID = 0
 	queueing_result.WaitMan = ""
 	queueing_result.WaitTime = ""
 	queueing_result.TurnAroundTime = ""
@@ -54,10 +64,14 @@ func (form *QueueingTheory) message() map[string]map[string]string {
 
 func Queueing(c *gin.Context) {
 	var kekka string
+	var queueings []QueueingData
+	var last_que int
 
 	// 初期化
 	initOutputData()
-	onDisp := false // true 表示する, false しない
+	onDisp := false                        // true 表示する, false しない
+	const last_queueing_number = 3         // 履歴表示数：最新の何個を表示するかを決める
+	const fileName = "queueing_theory.csv" // 履歴を保存するファイル名
 
 	// フォームよりデータを取得
 	window := c.PostForm("window")
@@ -65,15 +79,9 @@ func Queueing(c *gin.Context) {
 	servises := c.PostForm("servises")
 
 	var form QueueingTheory
-	// form := forms.User{
-	// 	Name:      r.FormValue("name"),
-	// 	FirstName: r.FormValue("firstName"),
-	// 	LastName:  r.FormValue("lastName"),
-	// 	Email:     r.FormValue("email"),
-	// }
 	// Bindの代表的２つ　MustBindWith, ShouldBind
 	if err := c.ShouldBind(&form); err != nil {
-		log.Println("formの取得結果：", form)
+		log.Println("formの取得結果:", form)
 
 		if ve, ok := err.(validator.ValidationErrors); ok {
 			// リクエストが間違っている時の処理
@@ -103,10 +111,20 @@ func Queueing(c *gin.Context) {
 				kekka = kekka + fmt.Sprintf("%s: %.0f", key, val)
 			}
 		}
+
+		// 履歴表示用のcsvを読み込む
+		readCSVFile(fileName, &queueings)
+		if len(queueings)-last_queueing_number <= 0 {
+			last_que = 0 // 指定件数より少ないので、全体を表示する
+		} else {
+			last_que = len(queueings) - last_queueing_number // 後ろから何個のリストを取得するか
+		}
+
 		c.HTML(http.StatusOK, "index.html", gin.H{
 			"form":  form,
 			"kekka": queueing_result,
 			"logs":  kekka,
+			"lasts": queueings[last_que:],
 		})
 		return
 	}
@@ -114,12 +132,20 @@ func Queueing(c *gin.Context) {
 
 	// Data is OK.
 
+	// 待ち行列を計算する
 	err := exec_queueing(arrived_f, servises_f, window_f)
 	if err != nil {
 		log.Println("exec_queueing() function error", err)
 		// とりあえず処理しないでおく
 	}
 
+	// CSVで書き出し
+	input_param := []string{window, arrived, servises}
+	err = toCSVFile(fileName, input_param)
+	if err != nil {
+		log.Println("toCSVFile() function error", err)
+
+	}
 	log.Println("計算結果：", queueing_result.WaitMan, queueing_result.WaitTime, queueing_result.TurnAroundTime)
 
 	kekka = fmt.Sprintf("M/M/%sモデル 待ち %s (人), %s (分), ターンアラウンドタイム %s (分)",
@@ -131,13 +157,23 @@ func Queueing(c *gin.Context) {
 	form.Window = window
 	form.Arrived = arrived
 	form.Servises = servises
+
+	readCSVFile(fileName, &queueings)
+	if len(queueings)-last_queueing_number <= 0 {
+		last_que = 0 // 指定件数より少ないので、全体を表示する
+	} else {
+		last_que = len(queueings) - last_queueing_number // 後ろから何個のリストを取得するか
+	}
+	// log.Println(queueings[last_que:])
+
 	// HTMLへ表示
 	onDisp = true // 「結果を表示する」へ変更
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"form":   form,
 		"onDisp": onDisp,
 		"kekka":  queueing_result,
-		"logs":   kekka,
+		"logs":   "",
+		"lasts":  queueings[last_que:],
 	})
 }
 
@@ -152,9 +188,73 @@ func exec_queueing(ta, ts, win float64) error {
 	wait_time := wait_man * ts
 	turn_around_time := wait_time + ts
 
+	// queueing_result.ID += 1
 	queueing_result.WaitMan = strconv.FormatFloat(wait_man, 'f', 1, 64)
 	queueing_result.WaitTime = strconv.FormatFloat(wait_time, 'f', 3, 64)
 	queueing_result.TurnAroundTime = strconv.FormatFloat(turn_around_time, 'f', 3, 64)
+
+	return nil
+}
+
+func toCSVFile(fileName string, inp []string) error {
+	// 入力チェック
+	// 今は入力データは3つを想定
+	if len(inp) != 3 {
+		msg := "CSV作成入力データエラー"
+		log.Println(msg)
+		return errors.New(msg)
+	}
+
+	fp, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0600)
+	// file, err := os.Create(fileName)
+	if err != nil {
+		log.Println("CSV作成エラー", err)
+		return err
+	}
+	defer fp.Close()
+	// fi, _ := file.Stat()
+	// leng := fi.Size()
+	log.Println("CSVファイル名:", fileName)
+
+	w := csv.NewWriter(fp)
+	list := []string{inp[0], inp[1], inp[2], queueing_result.WaitMan, queueing_result.WaitTime, queueing_result.TurnAroundTime}
+
+	err = w.Write(list)
+	if err != nil {
+		log.Println("CSV書き込みエラー", err)
+		return err
+	}
+	w.Flush()
+
+	return nil
+}
+
+func readCSVFile(fileName string, datas *[]QueueingData) error {
+
+	fp, err := os.Open(fileName)
+	if err != nil {
+		log.Println("CSVファイルオープン込みエラー", err)
+		return nil
+	}
+	defer fp.Close()
+
+	// Read File into a Variable
+	lines, err := csv.NewReader(fp).ReadAll()
+	if err != nil {
+		log.Fatal("CSVファイルエラー", err)
+		return err
+	}
+
+	var data QueueingData
+	for _, line := range lines {
+		data.InputData.Window = line[0]
+		data.InputData.Arrived = line[1]
+		data.InputData.Servises = line[2]
+		data.OutputData.WaitMan = line[3]
+		data.OutputData.WaitTime = line[4]
+		data.OutputData.TurnAroundTime = line[5]
+		*datas = append(*datas, data)
+	}
 
 	return nil
 }
