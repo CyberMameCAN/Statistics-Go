@@ -25,17 +25,17 @@
             <legend>M/M/*モデルに対応してます。</legend>
             <fieldset>
             <div class="uk-grid">
-                <div class="uk-width-1-1"><label><span class="uk-label">窓口(個)</span> 1桁の正の整数で入力</label></div>
+                <div class="uk-width-1-1"><label><span class="uk-label">窓口(個)</span> 正の整数で入力</label></div>
                 <div class="uk-margin-top"><input class="uk-input uk-form-width-small uk-background-muted" name="window" type="number" min=1 value="{{.form.Window}}" maxlength="1" placeholder="(例) 1"></div> 
             </div>
 
             <div class="uk-grid">
-                <div class="uk-width-1-1"><label><span class="uk-label">平均待ち時間(分) </span> 2桁の正の整数で入力</label></div>
+                <div class="uk-width-1-1"><label><span class="uk-label">平均待ち時間(分) </span> 正の整数で入力</label></div>
                 <div class="uk-margin-top"><input class="uk-input uk-form-width-small uk-background-muted" name="arrived" type="number" min=1 value="{{.form.Arrived}}" maxlength="3" placeholder="(例) 10"></div>
             </div>
 
             <div class="uk-grid">
-                <div class="uk-width-1-1"><label><span class="uk-label">平均サービス時間(分) </span> 2桁の正の整数で入力</label></div>
+                <div class="uk-width-1-1"><label><span class="uk-label">平均サービス時間(分) </span> 正の整数で入力</label></div>
                 <div class="uk-margin-top"><input class="uk-input uk-form-width-small uk-background-muted" name="servises" type="number" min=1 value="{{.form.Servises}}" maxlength="3" placeholder="8"></div>
             </div>
 
