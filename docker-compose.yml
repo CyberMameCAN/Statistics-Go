@@ -13,4 +13,4 @@ services:
     tty: true
     environment:
       TZ: Asia/Tokyo
-    restart: unless-stopped
+    #restart: unless-stopped
